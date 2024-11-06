@@ -620,3 +620,38 @@ ggplot(data_famsize_no_outliers, aes(x = FAMSIZE_CAT, y = INCOMETOTAL, fill = FA
        y = "Income Total") +
   scale_fill_manual(values = c("Small Family" = "#4E79A7", "Large Family" = "#F28E2B")) +
   theme_minimal()
+
+
+
+
+#Wilcoxon Test 
+
+#Wilcoxon Signed-Rank Test
+
+# Filtering data for two groups to compare INCOMETOTAL based on MARITALSTATUS
+income_married <- data$INCOMETOTAL[data$MARITALSTATUS == "Married"]
+income_single <- data$INCOMETOTAL[data$MARITALSTATUS == "Single / not married"]
+
+# Wilcoxon Signed-Rank Test between Married and Single / not married groups
+wilcox_test <- wilcox.test(income_married, income_single, paired = FALSE)
+print(wilcox_test)
+
+
+#Kolmogorov-Smirnov (K-S) Test
+
+# Kolmogorov-Smirnov Test to check if INCOMETOTAL follows a normal distribution
+ks_test_income <- ks.test(data$INCOMETOTAL, "pnorm", mean = mean(data$INCOMETOTAL, na.rm = TRUE), sd = sd(data$INCOMETOTAL, na.rm = TRUE))
+print(ks_test_income)
+
+
+# Separate income data by gender
+income_male <- data$INCOMETOTAL[data$GENDER == "M"]
+income_female <- data$INCOMETOTAL[data$GENDER == "F"]
+
+# Kolmogorov-Smirnov Test to compare income distribution between males and females
+ks_test_gender <- ks.test(income_male, income_female)
+print(ks_test_gender)
+
+# Perform Mann-Whitney U Test on INCOMETOTAL between males and females
+mann_whitney_test <- wilcox.test(INCOMETOTAL ~ GENDER, data = data, exact = FALSE)
+print(mann_whitney_test)
