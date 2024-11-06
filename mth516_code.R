@@ -8,7 +8,9 @@ library(stats)
 library(tseries)
 
 # Load data
-data <- read.csv("BankCustomerData_Dataset.csv")
+Data <- read.csv("BankCustomerData_Dataset.csv")
+
+data<-Data
 
 # Data Validation and Basic Data Exploration
 # Checking data structure
@@ -271,3 +273,350 @@ print(chi_square_test_poisson)
 
 #Doesn't follow poisson either
 
+
+#Mann whitney test
+
+data<-Data
+
+
+
+#Car ownership vs income
+
+# Data Preparation
+# Convert OWNCAR to factor
+data$OWNCAR <- factor(data$OWNCAR, levels = c("Y", "N"), labels = c("Owns Car", "Does Not Own Car"))
+
+# Remove missing values
+data_car <- data %>% filter(!is.na(INCOMETOTAL) & !is.na(OWNCAR))
+
+# Outlier Removal Function
+remove_outliers_iqr <- function(df, variable) {
+  df %>%
+    group_by(OWNCAR) %>%
+    mutate(
+      Q1 = quantile(!!sym(variable), 0.25, na.rm = TRUE),
+      Q3 = quantile(!!sym(variable), 0.75, na.rm = TRUE),
+      IQR = Q3 - Q1,
+      Lower_Bound = Q1 - 1.5 * IQR,
+      Upper_Bound = Q3 + 1.5 * IQR
+    ) %>%
+    filter((!!sym(variable)) >= Lower_Bound & (!!sym(variable)) <= Upper_Bound) %>%
+    ungroup() %>%
+    select(-Q1, -Q3, -IQR, -Lower_Bound, -Upper_Bound)
+}
+
+# Remove outliers
+data_car_no_outliers <- remove_outliers_iqr(data_car, "INCOMETOTAL")
+
+# Summary Statistics
+summary_stats_car <- data_car_no_outliers %>%
+  group_by(OWNCAR) %>%
+  summarise(
+    Count = n(),
+    Median = median(INCOMETOTAL),
+    Mean = mean(INCOMETOTAL),
+    SD = sd(INCOMETOTAL)
+  )
+print(summary_stats_car)
+
+# Mann-Whitney U Test
+income_own_car <- data_car_no_outliers %>% filter(OWNCAR == "Owns Car") %>% pull(INCOMETOTAL)
+income_no_car <- data_car_no_outliers %>% filter(OWNCAR == "Does Not Own Car") %>% pull(INCOMETOTAL)
+
+car_test <- wilcox.test(income_own_car, income_no_car, alternative = "two.sided")
+print(car_test)
+
+# Histogram
+ggplot(data_car_no_outliers, aes(x = INCOMETOTAL, fill = OWNCAR)) +
+  geom_histogram(position = "dodge", bins = 30, alpha = 0.6, boundary = 0) +
+  labs(title = "Income Distribution by Car Ownership (Outliers Removed)",
+       x = "Income Total",
+       y = "Frequency") +
+  scale_fill_manual(values = c("Owns Car" = "#4E79A7", "Does Not Own Car" = "#F28E2B")) +
+  theme_minimal()
+
+# Box Plot
+ggplot(data_car_no_outliers, aes(x = OWNCAR, y = INCOMETOTAL, fill = OWNCAR)) +
+  geom_boxplot(outlier.shape = NA) +
+  labs(title = "Income by Car Ownership (Outliers Removed)",
+       x = "Car Ownership",
+       y = "Income Total") +
+  scale_fill_manual(values = c("Owns Car" = "#4E79A7", "Does Not Own Car" = "#F28E2B")) +
+  theme_minimal()
+
+
+# for most of the income groups more people dont own cars then the ones that own cars.
+# This difference decreases as the income increases, but the total number with high income is also low.
+
+# Gender vs Income
+
+# Data Preparation
+# Convert GENDER to factor
+data$GENDER <- factor(data$GENDER, levels = c("M", "F"), labels = c("Male", "Female"))
+
+# Remove missing values
+data_gender <- data %>% filter(!is.na(INCOMETOTAL) & !is.na(GENDER))
+
+# Outlier Removal Function
+remove_outliers_iqr <- function(df, variable) {
+  df %>%
+    group_by(GENDER) %>%
+    mutate(
+      Q1 = quantile(!!sym(variable), 0.25, na.rm = TRUE),
+      Q3 = quantile(!!sym(variable), 0.75, na.rm = TRUE),
+      IQR = Q3 - Q1,
+      Lower_Bound = Q1 - 1.5 * IQR,
+      Upper_Bound = Q3 + 1.5 * IQR
+    ) %>%
+    filter((!!sym(variable)) >= Lower_Bound & (!!sym(variable)) <= Upper_Bound) %>%
+    ungroup() %>%
+    select(-Q1, -Q3, -IQR, -Lower_Bound, -Upper_Bound)
+}
+
+# Remove outliers
+data_gender_no_outliers <- remove_outliers_iqr(data_gender, "INCOMETOTAL")
+
+# Summary Statistics
+summary_stats_gender <- data_gender_no_outliers %>%
+  group_by(GENDER) %>%
+  summarise(
+    Count = n(),
+    Median = median(INCOMETOTAL),
+    Mean = mean(INCOMETOTAL),
+    SD = sd(INCOMETOTAL)
+  )
+print(summary_stats_gender)
+
+# Mann-Whitney U Test
+income_male <- data_gender_no_outliers %>% filter(GENDER == "Male") %>% pull(INCOMETOTAL)
+income_female <- data_gender_no_outliers %>% filter(GENDER == "Female") %>% pull(INCOMETOTAL)
+
+gender_test <- wilcox.test(income_male, income_female, alternative = "two.sided")
+print(gender_test)
+
+# Histogram
+ggplot(data_gender_no_outliers, aes(x = INCOMETOTAL, fill = GENDER)) +
+  geom_histogram(position = "dodge", bins = 30, alpha = 0.6, boundary = 0) +
+  labs(title = "Income Distribution by Gender (Outliers Removed)",
+       x = "Income Total",
+       y = "Frequency") +
+  scale_fill_manual(values = c("Male" = "#4E79A7", "Female" = "#F28E2B")) +
+  theme_minimal()
+
+# Box Plot
+ggplot(data_gender_no_outliers, aes(x = GENDER, y = INCOMETOTAL, fill = GENDER)) +
+  geom_boxplot(outlier.shape = NA) +
+  labs(title = "Income by Gender (Outliers Removed)",
+       x = "Gender",
+       y = "Income Total") +
+  scale_fill_manual(values = c("Male" = "#4E79A7", "Female" = "#F28E2B")) +
+  theme_minimal()
+
+
+# Both the mean and median income of male is more than female
+
+#Property ownership vs income
+
+# Data Preparation
+# Convert OWNPROPERTY to factor
+data$OWNPROPERTY <- factor(data$OWNPROPERTY, levels = c("Y", "N"), labels = c("Owns Property", "Does Not Own Property"))
+
+# Remove missing values
+data_property <- data %>% filter(!is.na(INCOMETOTAL) & !is.na(OWNPROPERTY))
+
+# Outlier Removal Function
+remove_outliers_iqr <- function(df, variable) {
+  df %>%
+    group_by(OWNPROPERTY) %>%
+    mutate(
+      Q1 = quantile(!!sym(variable), 0.25, na.rm = TRUE),
+      Q3 = quantile(!!sym(variable), 0.75, na.rm = TRUE),
+      IQR = Q3 - Q1,
+      Lower_Bound = Q1 - 1.5 * IQR,
+      Upper_Bound = Q3 + 1.5 * IQR
+    ) %>%
+    filter((!!sym(variable)) >= Lower_Bound & (!!sym(variable)) <= Upper_Bound) %>%
+    ungroup() %>%
+    select(-Q1, -Q3, -IQR, -Lower_Bound, -Upper_Bound)
+}
+
+# Remove outliers
+data_property_no_outliers <- remove_outliers_iqr(data_property, "INCOMETOTAL")
+
+# Summary Statistics
+summary_stats_property <- data_property_no_outliers %>%
+  group_by(OWNPROPERTY) %>%
+  summarise(
+    Count = n(),
+    Median = median(INCOMETOTAL),
+    Mean = mean(INCOMETOTAL),
+    SD = sd(INCOMETOTAL)
+  )
+print(summary_stats_property)
+
+# Mann-Whitney U Test
+income_own_property <- data_property_no_outliers %>% filter(OWNPROPERTY == "Owns Property") %>% pull(INCOMETOTAL)
+income_no_property <- data_property_no_outliers %>% filter(OWNPROPERTY == "Does Not Own Property") %>% pull(INCOMETOTAL)
+
+property_test <- wilcox.test(income_own_property, income_no_property, alternative = "two.sided")
+print(property_test)
+
+# Histogram
+ggplot(data_property_no_outliers, aes(x = INCOMETOTAL, fill = OWNPROPERTY)) +
+  geom_histogram(position = "dodge", bins = 30, alpha = 0.6, boundary = 0) +
+  labs(title = "Income Distribution by Property Ownership (Outliers Removed)",
+       x = "Income Total",
+       y = "Frequency") +
+  scale_fill_manual(values = c("Owns Property" = "#4E79A7", "Does Not Own Property" = "#F28E2B")) +
+  theme_minimal()
+
+# Box Plot
+ggplot(data_property_no_outliers, aes(x = OWNPROPERTY, y = INCOMETOTAL, fill = OWNPROPERTY)) +
+  geom_boxplot(outlier.shape = NA) +
+  labs(title = "Income by Property Ownership (Outliers Removed)",
+       x = "Property Ownership",
+       y = "Income Total") +
+  scale_fill_manual(values = c("Owns Property" = "#4E79A7", "Does Not Own Property" = "#F28E2B")) +
+  theme_minimal()
+
+# The mean income is less for people not owning property
+
+# income vs education
+
+# Convert EDUCATIONLEVEL to factor
+data$EDUCATIONLEVEL <- as.factor(data$EDUCATIONLEVEL)
+
+# Define higher education levels
+higher_education <- c("Higher education", "Academic degree")
+
+# Recode EDUCATIONLEVEL into two categories
+data$EDUCATION_CAT <- ifelse(data$EDUCATIONLEVEL %in% higher_education, "Higher Education", "Secondary Education")
+data$EDUCATION_CAT <- factor(data$EDUCATION_CAT, levels = c("Higher Education", "Secondary Education"))
+
+# Remove missing values
+data <- data %>% filter(!is.na(INCOMETOTAL) & !is.na(EDUCATION_CAT))
+
+# Function to identify and remove outliers using IQR method
+remove_outliers_iqr <- function(df, variable) {
+  df %>%
+    group_by(EDUCATION_CAT) %>%
+    mutate(
+      Q1 = quantile(!!sym(variable), 0.25, na.rm = TRUE),
+      Q3 = quantile(!!sym(variable), 0.75, na.rm = TRUE),
+      IQR = Q3 - Q1,
+      Lower_Bound = Q1 - 1.5 * IQR,
+      Upper_Bound = Q3 + 1.5 * IQR
+    ) %>%
+    filter( (!!sym(variable)) >= Lower_Bound & (!!sym(variable)) <= Upper_Bound ) %>%
+    select(-Q1, -Q3, -IQR, -Lower_Bound, -Upper_Bound)
+}
+
+# Apply the outlier removal function
+data_no_outliers <- remove_outliers_iqr(data, "INCOMETOTAL")
+
+# Summary Statistics without outliers
+summary_stats_education <- data_no_outliers %>%
+  group_by(EDUCATION_CAT) %>%
+  summarise(
+    Count = n(),
+    Median = median(INCOMETOTAL),
+    Mean = mean(INCOMETOTAL),
+    SD = sd(INCOMETOTAL)
+  )
+print(summary_stats_education)
+
+# Data Preparation for Mann-Whitney U Test
+income_higher_ed <- data_no_outliers %>% filter(EDUCATION_CAT == "Higher Education") %>% pull(INCOMETOTAL)
+income_secondary_ed <- data_no_outliers %>% filter(EDUCATION_CAT == "Secondary Education") %>% pull(INCOMETOTAL)
+
+# Mann-Whitney U Test
+education_test <- wilcox.test(income_higher_ed, income_secondary_ed, alternative = "two.sided")
+print(education_test)
+
+# Histogram without outliers
+ggplot(data_no_outliers, aes(x = INCOMETOTAL, fill = EDUCATION_CAT)) +
+  geom_histogram(position = "dodge", bins = 30, alpha = 0.6, boundary = 0) +
+  labs(title = "Income Distribution by Education Level (Outliers Removed)",
+       x = "Income Total",
+       y = "Frequency") +
+  scale_fill_manual(values = c("Higher Education" = "#4E79A7", "Secondary Education" = "#F28E2B")) +
+  theme_minimal()
+
+# Box Plot without outliers
+ggplot(data_no_outliers, aes(x = EDUCATION_CAT, y = INCOMETOTAL, fill = EDUCATION_CAT)) +
+  geom_boxplot(outlier.shape = NA) +
+  labs(title = "Income by Education Level (Outliers Removed)",
+       x = "Education Level",
+       y = "Income Total") +
+  scale_fill_manual(values = c("Higher Education" = "#4E79A7", "Secondary Education" = "#F28E2B")) +
+  theme_minimal()
+
+
+#family size vs income 
+
+# Data Preparation
+# Remove missing values
+data_famsize <- data %>% filter(!is.na(INCOMETOTAL) & !is.na(FAMSIZE))
+
+# Calculate median family size
+median_famsize <- median(data_famsize$FAMSIZE, na.rm = TRUE)
+
+# Categorize FAMSIZE
+data_famsize <- data_famsize %>%
+  mutate(FAMSIZE_CAT = ifelse(FAMSIZE <= median_famsize, "Small Family", "Large Family")) %>%
+  mutate(FAMSIZE_CAT = factor(FAMSIZE_CAT, levels = c("Small Family", "Large Family")))
+
+# Outlier Removal Function
+remove_outliers_iqr <- function(df, variable) {
+  df %>%
+    group_by(FAMSIZE_CAT) %>%
+    mutate(
+      Q1 = quantile(!!sym(variable), 0.25, na.rm = TRUE),
+      Q3 = quantile(!!sym(variable), 0.75, na.rm = TRUE),
+      IQR = Q3 - Q1,
+      Lower_Bound = Q1 - 1.5 * IQR,
+      Upper_Bound = Q3 + 1.5 * IQR
+    ) %>%
+    filter((!!sym(variable)) >= Lower_Bound & (!!sym(variable)) <= Upper_Bound) %>%
+    ungroup() %>%
+    select(-Q1, -Q3, -IQR, -Lower_Bound, -Upper_Bound)
+}
+
+# Remove outliers
+data_famsize_no_outliers <- remove_outliers_iqr(data_famsize, "INCOMETOTAL")
+
+# Summary Statistics
+summary_stats_famsize <- data_famsize_no_outliers %>%
+  group_by(FAMSIZE_CAT) %>%
+  summarise(
+    Count = n(),
+    Median = median(INCOMETOTAL),
+    Mean = mean(INCOMETOTAL),
+    SD = sd(INCOMETOTAL)
+  )
+print(summary_stats_famsize)
+
+# Mann-Whitney U Test
+income_small_family <- data_famsize_no_outliers %>% filter(FAMSIZE_CAT == "Small Family") %>% pull(INCOMETOTAL)
+income_large_family <- data_famsize_no_outliers %>% filter(FAMSIZE_CAT == "Large Family") %>% pull(INCOMETOTAL)
+
+famsize_test <- wilcox.test(income_small_family, income_large_family, alternative = "two.sided")
+print(famsize_test)
+
+# Histogram
+ggplot(data_famsize_no_outliers, aes(x = INCOMETOTAL, fill = FAMSIZE_CAT)) +
+  geom_histogram(position = "dodge", bins = 30, alpha = 0.6, boundary = 0) +
+  labs(title = "Income Distribution by Family Size (Outliers Removed)",
+       x = "Income Total",
+       y = "Frequency") +
+  scale_fill_manual(values = c("Small Family" = "#4E79A7", "Large Family" = "#F28E2B")) +
+  theme_minimal()
+
+# Box Plot
+ggplot(data_famsize_no_outliers, aes(x = FAMSIZE_CAT, y = INCOMETOTAL, fill = FAMSIZE_CAT)) +
+  geom_boxplot(outlier.shape = NA) +
+  labs(title = "Income by Family Size (Outliers Removed)",
+       x = "Family Size Category",
+       y = "Income Total") +
+  scale_fill_manual(values = c("Small Family" = "#4E79A7", "Large Family" = "#F28E2B")) +
+  theme_minimal()
