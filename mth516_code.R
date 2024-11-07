@@ -654,5 +654,30 @@ qqline(data$INCOMETOTAL)
 # Kruskal-Wallis Test for Housing Type
 kruskal.test(INCOMETOTAL ~ HOUSINGTYPE, data = data)
 
+# Box plot for Housing Type vs Income
+ggplot(data, aes(x = HOUSINGTYPE, y = INCOMETOTAL)) +
+  geom_boxplot() +
+  labs(title = "Income by Housing Type", x = "Housing Type", y = "Income") +
+  theme_minimal()
+
 # Kruskal-Wallis Test for Education Level
 kruskal.test(INCOMETOTAL ~ EDUCATIONLEVEL, data = data)
+
+# Box plot for Education Level vs Income
+ggplot(data, aes(x = EDUCATIONLEVEL, y = INCOMETOTAL)) +
+  geom_boxplot() +
+  labs(title = "Income by Education Level", x = "Education Level", y = "Income") +
+  theme_minimal()
+
+# Kruskal-Wallis Test for family size
+kruskal.test(INCOMETOTAL ~ FAMSIZE, data = data)
+
+# Box plot for Family Size vs Income
+ggplot(data, aes(x = as.factor(FAMSIZE), y = INCOMETOTAL)) +
+  geom_boxplot() +
+  labs(title = "Income by Family Size", x = "Family Size", y = "Income") +
+  theme_minimal()
+
+
+
+
