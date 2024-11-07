@@ -647,12 +647,12 @@ print(mann_whitney_test)
 
 # Non-parametric Tests
 # Distribution Examination for Housing Type
-#hist(data$INCOMETOTAL, main = "Distribution of Income by Housing Type", xlab = "Income Total")
-#qqnorm(data$INCOMETOTAL)
-#qqline(data$INCOMETOTAL)
+hist(data$INCOMETOTAL, main = "Distribution of Income by Housing Type", xlab = "Income Total")
+qqnorm(data$INCOMETOTAL)
+qqline(data$INCOMETOTAL)
 
 # Kruskal-Wallis Test for Housing Type
-#kruskal.test(INCOMETOTAL ~ HOUSINGTYPE, data = data)
+kruskal.test(INCOMETOTAL ~ HOUSINGTYPE, data = data)
 
 # Kruskal-Wallis Test for Education Level
-#kruskal.test(INCOMETOTAL ~ EDUCATIONLEVEL, data = data)
+kruskal.test(INCOMETOTAL ~ EDUCATIONLEVEL, data = data)
