@@ -6,6 +6,7 @@ library(psych)
 library(car)
 library(stats)
 library(tseries)
+library(FSA)
 
 # Load data
 Data <- read.csv("BankCustomerData_Dataset.csv")
@@ -91,19 +92,6 @@ ggplot(data, aes(x = HOUSINGTYPE, y = INCOMETOTAL, fill = GENDER)) +
 #anova_education <- aov(INCOMETOTAL ~ EDUCATIONLEVEL, data = data)
 #summary(anova_education)
 #TukeyHSD(anova_education)
-
-# Non-parametric Tests
-# Distribution Examination for Housing Type
-#library(FSA)
-#hist(data$INCOMETOTAL, main = "Distribution of Income by Housing Type", xlab = "Income Total")
-#qqnorm(data$INCOMETOTAL)
-#qqline(data$INCOMETOTAL)
-
-# Kruskal-Wallis Test for Housing Type
-#kruskal.test(INCOMETOTAL ~ HOUSINGTYPE, data = data)
-
-# Kruskal-Wallis Test for Education Level
-#kruskal.test(INCOMETOTAL ~ EDUCATIONLEVEL, data = data)
 
 
 # Runs Tests
@@ -655,3 +643,16 @@ print(ks_test_gender)
 # Perform Mann-Whitney U Test on INCOMETOTAL between males and females
 mann_whitney_test <- wilcox.test(INCOMETOTAL ~ GENDER, data = data, exact = FALSE)
 print(mann_whitney_test)
+
+
+# Non-parametric Tests
+# Distribution Examination for Housing Type
+#hist(data$INCOMETOTAL, main = "Distribution of Income by Housing Type", xlab = "Income Total")
+#qqnorm(data$INCOMETOTAL)
+#qqline(data$INCOMETOTAL)
+
+# Kruskal-Wallis Test for Housing Type
+#kruskal.test(INCOMETOTAL ~ HOUSINGTYPE, data = data)
+
+# Kruskal-Wallis Test for Education Level
+#kruskal.test(INCOMETOTAL ~ EDUCATIONLEVEL, data = data)
